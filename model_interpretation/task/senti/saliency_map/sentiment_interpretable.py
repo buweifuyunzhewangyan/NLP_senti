@@ -413,6 +413,7 @@ def extract_integrated_gradient_scores(
     return err_total
 
 def get_INFO_fromResult(result,score_limit):
+    #create by liuys
     id = str(result['id'])
     pred_label = str(result['pred_label'])
     char_attri = result['char_attri']
