@@ -39,7 +39,7 @@ from utils import convert_example
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "--base_model", type=str, choices=['roberta_base', 'roberta_large'])
+    "--base_model", type=str, default='roberta_base',choices=['roberta_base', 'roberta_large'])
 parser.add_argument(
     "--save_dir",
     default='./checkpoint',
@@ -69,7 +69,7 @@ parser.add_argument(
     help="Weight decay if we apply some.")
 parser.add_argument(
     "--epochs",
-    default=3,
+    default=5,
     type=int,
     help="Total number of training epochs to perform.")
 parser.add_argument(
@@ -87,13 +87,12 @@ parser.add_argument(
 parser.add_argument(
     '--device',
     choices=['cpu', 'gpu', 'xpu'],
-    default="gpu",
+    default="cpu",
     help="Select which device to train model, defaults to gpu.")
 parser.add_argument(
     '--language',
     choices=['ch', 'en'],
-    required=True,
-    default=None,
+    default='ch',
     help="Language that the model is built for")
 args = parser.parse_args()
 

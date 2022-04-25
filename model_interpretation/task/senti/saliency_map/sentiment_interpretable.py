@@ -74,7 +74,7 @@ def get_args():
     parser.add_argument(
         '--data_dir',
         type=str,
-        default='D:\Spyder_project/NLP_senti\data-part-1\senti_ch_part1.txt',
+        default='../../../../data-part-1\senti_ch_part1.txt',
         help='data directory includes train / develop data')
     parser.add_argument('--eval', default='@',action='store_true')
     parser.add_argument(
@@ -490,7 +490,7 @@ def extract_LIME_scores(args, tokenizer, tokens, pred_label, model, probs,
 
 if __name__ == "__main__":
     args = get_args()
-    result_name = 'D:\Spyder_project/NLP_senti\data-part-1/senti-rationale-0.06.txt'
+    result_name = '../../../../data-part-1/senti-rationale-0.06.txt'
     if os.path.exists(result_name):
         os.remove(result_name)
 
