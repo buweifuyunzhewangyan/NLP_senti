@@ -1,8 +1,20 @@
 import os
+import re
 
 import torch
 from torch.utils.data import Dataset,DataLoader
 import pandas as pd
+from models import lib
+
+
+# 分词
+def tokenlize(content):
+    content = re.sub(r"<.*?>", " ", content)
+    filters = ['!', '"', '#', '$', '%', '&', '\(', '\)', '\*', '\+', ',', '-', '\.', '/', ':', ';', '<', '=', '>', '\?',
+               '@', '\[', '\\', '\]', '^', '_', '`', '\{', '\|', '\}', '~', '\t', '\n', '\x97', '\x96', '”', '“', ]
+    content = re.sub("|".join(filters), " ", content)
+    tokens = [i.strip().lower() for i in content.split()]
+    return tokens
 
 # 重新定义collate_fn
 def collate_fn(batch):
@@ -11,8 +23,9 @@ def collate_fn(batch):
     :return:
     """
     content, label = list(zip(*batch))
-    from lib import ws, max_len
-    content = [ws.transform(i, max_len=max_len) for i in content]
+    ws, max_len = lib.ws,lib.max_len
+
+    content = [ws.to_indices(i) for i in content]
     content = torch.LongTensor(content)
     label = torch.LongTensor(label)
     return content, label
@@ -30,7 +43,15 @@ class sentiDataSet(Dataset):
 
 
     def __getitem__(self, index):
+
         tokens =self.txts[index]
+        tokens = tokenlize(tokens)
         labels =self.labels[index]
 
         return tokens,labels
+
+    def __len__(self):
+        return len(self.labels)
+
+def getDataLoader(data_path):
+    return DataLoader(sentiDataSet(data_path),shuffle=True, batch_size=2, collate_fn=collate_fn)

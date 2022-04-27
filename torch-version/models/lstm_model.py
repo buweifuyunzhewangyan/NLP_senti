@@ -12,6 +12,7 @@ class biLSTM(nn.Module):
             # 字典的长度
             num_embeddings=num_embeddings,
             embedding_dim=embedding_dim,
+            padding_idx=0
         )
         self.lstm = nn.LSTM(
             input_size=embedding_dim, hidden_size=hidden_size, num_layers=num_layer,
