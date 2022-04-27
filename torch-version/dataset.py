@@ -1,6 +1,5 @@
 import os
 import re
-
 import torch
 from torch.utils.data import Dataset,DataLoader
 import pandas as pd
@@ -12,11 +11,6 @@ tokenizer = CharTokenizer(lib.ws, 'ch', './models/punctuations')
 
 # 分词
 def tokenlize(content):
-    # content = re.sub(r"<.*?>", " ", content)
-    # filters = ['!', '"', '#', '$', '%', '&', '\(', '\)', '\*', '\+', ',', '-', '\.', '/', ':', ';', '<', '=', '>', '\?',
-    #            '@', '\[', '\\', '\]', '^', '_', '`', '\{', '\|', '\}', '~', '\t', '\n', '\x97', '\x96', '”', '“', ]
-    # content = re.sub("|".join(filters), " ", content)
-    # tokens = [i.strip().lower() for i in content.split()]
     tokens = tokenizer.encode(content)
     return tokens
 
