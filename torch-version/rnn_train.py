@@ -7,8 +7,9 @@ from models import lib
 
 import torch.nn.functional as F
 
-train_loader = getDataLoader('D:\Spyder_project/NLP_senti\ChnSentiCorp/train.tsv')
-eval_loader = getDataLoader('D:\Spyder_project/NLP_senti\ChnSentiCorp/dev.tsv')
+#定义训练-验证的数据
+train_loader = getDataLoader('D:\Spyder_project/NLP_senti\ChnSentiCorp/train.tsv',batch_size=128)
+eval_loader = getDataLoader('D:\Spyder_project/NLP_senti\ChnSentiCorp/dev.tsv',batch_size=128)
 
 #定义自己的模型
 model = biLSTM(

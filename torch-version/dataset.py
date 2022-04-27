@@ -5,15 +5,19 @@ import torch
 from torch.utils.data import Dataset,DataLoader
 import pandas as pd
 from models import lib
+from models.utils import CharTokenizer
 
+
+tokenizer = CharTokenizer(lib.ws, 'ch', './models/punctuations')
 
 # 分词
 def tokenlize(content):
-    content = re.sub(r"<.*?>", " ", content)
-    filters = ['!', '"', '#', '$', '%', '&', '\(', '\)', '\*', '\+', ',', '-', '\.', '/', ':', ';', '<', '=', '>', '\?',
-               '@', '\[', '\\', '\]', '^', '_', '`', '\{', '\|', '\}', '~', '\t', '\n', '\x97', '\x96', '”', '“', ]
-    content = re.sub("|".join(filters), " ", content)
-    tokens = [i.strip().lower() for i in content.split()]
+    # content = re.sub(r"<.*?>", " ", content)
+    # filters = ['!', '"', '#', '$', '%', '&', '\(', '\)', '\*', '\+', ',', '-', '\.', '/', ':', ';', '<', '=', '>', '\?',
+    #            '@', '\[', '\\', '\]', '^', '_', '`', '\{', '\|', '\}', '~', '\t', '\n', '\x97', '\x96', '”', '“', ]
+    # content = re.sub("|".join(filters), " ", content)
+    # tokens = [i.strip().lower() for i in content.split()]
+    tokens = tokenizer.encode(content)
     return tokens
 
 # 重新定义collate_fn
@@ -25,8 +29,16 @@ def collate_fn(batch):
     content, label = list(zip(*batch))
     ws, max_len = lib.ws,lib.max_len
 
-    content = [ws.to_indices(i) for i in content]
-    content = torch.LongTensor(content)
+    content2 = []
+    for i in content:
+        if len(i)<lib.max_len:
+            while len(i)<lib.max_len:
+                i.append(0)
+        else:
+            i = i[0:lib.max_len]
+        content2.append(i)
+
+    content = torch.LongTensor(content2)
     label = torch.LongTensor(label)
     return content, label
 
@@ -53,5 +65,5 @@ class sentiDataSet(Dataset):
     def __len__(self):
         return len(self.labels)
 
-def getDataLoader(data_path):
-    return DataLoader(sentiDataSet(data_path),shuffle=True, batch_size=2, collate_fn=collate_fn)
+def getDataLoader(data_path,batch_size):
+    return DataLoader(sentiDataSet(data_path),shuffle=True, batch_size=batch_size, collate_fn=collate_fn)
