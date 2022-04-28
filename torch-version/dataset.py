@@ -25,11 +25,11 @@ def collate_fn(batch):
 
     content2 = []
     for i in content:
-        if len(i)<lib.max_len:
-            while len(i)<lib.max_len:
+        if len(i)<max_len:
+            while len(i)<max_len:
                 i.append(0)
         else:
-            i = i[0:lib.max_len]
+            i = i[0:max_len]
         content2.append(i)
 
     content = torch.LongTensor(content2)

@@ -332,6 +332,7 @@ def extract_integrated_gradient_scores(
             n_samples=args.n_samples)
         predicted_class_prob = probs[0][pred_label]
         predicted_class_prob.backward(retain_graph=False)
+        #获取embedded层对应的梯度，作为主要的打分依据
         embedded_grad = embedded.grad
         model.clear_gradients()
         embedded_grads_list.append(embedded_grad)
