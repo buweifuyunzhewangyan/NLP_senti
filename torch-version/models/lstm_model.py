@@ -19,6 +19,7 @@ class biLSTM(nn.Module):
             batch_first=True, bidirectional=bidirectional, dropout=dropout
         )
         self.fc = nn.Linear(hidden_size*2,num_classes)
+        self.softmax = nn.Softmax(dim=1)
 
     def forward(self,input):
         '''前向传播'''
@@ -33,3 +34,20 @@ class biLSTM(nn.Module):
         out = self.fc(output)
 
         return F.log_softmax(out, dim=-1)
+
+    def forward_interpet(self,text, seq_len):
+        #embedding层
+        embedded_text = self.embedding(text)
+        embedded_text.retain_grad()
+
+        x, (h_n, c_n) = self.lstm(embedded_text)
+        output_fw = h_n[-2, :, :]  # 正向最后一次输出
+        # output = x[:,0,hidden_size:]   反向，等同下方
+        output_bw = h_n[-1, :, :]  # 反向最后一次输出
+        #  只要最后一个lstm单元处理的结果，这里去掉了hidden state
+        output = torch.cat([output_fw, output_bw], dim=-1)  # [batch_size, hidden_size*num_direction]
+
+        out = self.fc(output)
+        prob = self.softmax(out)
+
+        return embedded_text,prob
