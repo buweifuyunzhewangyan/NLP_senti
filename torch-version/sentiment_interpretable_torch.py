@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 from models import lib
 from models.utils import CharTokenizer
-from models.lstm_model import biLSTM
+from models.lstm_model import biLSTM,cnn_biLSTM
 
 '''数据定义部分--start'''
 tokenizer = CharTokenizer(lib.ws, 'ch', './models/punctuations')
@@ -89,22 +89,61 @@ def init_lstm_var():
 
     return model, tokenizer, test_loader
 
+def init_cnn_lstm_var():
+    vocab = lib.ws
+    padding_idx = vocab.token_to_idx.get('[PAD]', 0)
+    # 定义自己的模型
+    model = cnn_biLSTM(
+        num_embeddings=len(vocab),
+        embedding_dim=lib.embedding_dim,
+        hidden_size=lib.hidden_size,
+        num_layer=lib.num_layer,
+        bidirectional=lib.bidirectional,
+        dropout=lib.drop_out,
+        num_classes=lib.num_classes
+    )
+
+    # Reads data and generates mini-batches.
+    test_data_path = '../data-part-1/senti_ch_part1.txt'
+    test_loader = getInterDataLoader(test_data_path,batch_size=1)
+
+    return model, tokenizer, test_loader
+
+def get_fenxi(tokens,char_list,fenxi_txt):
+    '''得到相应的中文结果，方便查看'''
+    tokens_list = []
+    for i in char_list:
+        tokens_list.append(tokens[i])
+    with open(fenxi_txt, 'a') as f:
+        f.write(str(tokens) + "\t")
+        f.write(str(pred_label) + "\t")
+        f.write(str(tokens_list) + "\n")
 
 if __name__=='__main__':
 
-    '''lstm模型部分'''
-    model, tokenizer, dataloader = init_lstm_var()
+    model_type = 'lstm'
+
+    if model_type=='lstm':
+        model, tokenizer, dataloader = init_lstm_var()
+        PATH = './model/model_9.pth'
+    elif model_type=='cnn_lstm':
+        model, tokenizer, dataloader = init_cnn_lstm_var()
+        PATH = './model/cnn_lstm_model_6.pth'
 
     # 加载模型
-    PATH = './model/model_9.pth'
     state = torch.load(PATH)
     model.load_state_dict(state['model_state'])
     # model.train()
 
     '''结果文件'''
-    result_txt = './out_put/result_lstm.txt'
+    result_txt = './out_put/result_{}.txt'.format(model_type)
     if os.path.exists(result_txt):
         os.remove(result_txt)
+
+    '''分析文件'''
+    fenxi_txt = './out_put/fenxi_{}.txt'.format(model_type)
+    if os.path.exists(fenxi_txt):
+        os.remove(fenxi_txt)
 
     for step, d in tqdm(enumerate(dataloader)):
         #id：每一句对应的索引；text：中文编码为数字的数组；seq_len：数组长度
@@ -124,16 +163,41 @@ if __name__=='__main__':
         sum_score = sum(inter_score)
         inter_score = [i/sum_score for i in inter_score]
 
-        #输出结果
-        char_list = []
-        for i,score in enumerate(inter_score):
-            if float(score)>=0.05:
-                char_list.append(i)
-        char_list = str(char_list)
-        with open(result_txt, 'a') as f:
-            f.write(str(id[0]) + "\t")
-            f.write(str(pred_label) + "\t")
-            f.write(char_list[1:-1] + "\n")
+        tokens = [
+                     tokenizer.vocab.idx_to_token[input_id]
+                     for input_id in text.tolist()[0]
+                 ][0:seq_len]
+
+        #lstm输出结果
+        if model_type=='lstm':
+            char_list = []
+            for i,score in enumerate(inter_score):
+                if float(score)>=0.05:
+                    char_list.append(i)
+            get_fenxi(tokens, char_list, fenxi_txt)
+            char_list = str(char_list)
+            with open(result_txt, 'a') as f:
+                f.write(str(id[0]) + "\t")
+                f.write(str(pred_label) + "\t")
+                f.write(char_list[1:-1] + "\n")
+
+
+        # cnn_lstm 输出结果
+        elif model_type=='cnn_lstm':
+            char_list = []
+            for i, score in enumerate(inter_score):
+                if float(score) >= 0.08:
+                    char_list.append(i)
+                    if i < len(inter_score)-1:
+                        char_list.append(i+1)
+            char_list = list(set(char_list))
+            get_fenxi(tokens,char_list,fenxi_txt)
+            char_list = str(char_list)
+            with open(result_txt, 'a') as f:
+                f.write(str(id[0]) + "\t")
+                f.write(str(pred_label) + "\t")
+                f.write(char_list[1:-1] + "\n")
+
 
 
 
