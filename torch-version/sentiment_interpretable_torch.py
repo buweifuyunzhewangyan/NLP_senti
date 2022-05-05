@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 from models import lib
 from models.utils import CharTokenizer
-from models.lstm_model import biLSTM,cnn_biLSTM
+from models.lstm_model import biLSTM, cnn_biLSTM, cnn_biLSTM2
 
 '''数据定义部分--start'''
 tokenizer = CharTokenizer(lib.ws, 'ch', './models/punctuations')
@@ -93,7 +93,8 @@ def init_cnn_lstm_var():
     vocab = lib.ws
     padding_idx = vocab.token_to_idx.get('[PAD]', 0)
     # 定义自己的模型
-    model = cnn_biLSTM(
+    model = cnn_biLSTM2(
+        cnn_outchannels=128,
         num_embeddings=len(vocab),
         embedding_dim=lib.embedding_dim,
         hidden_size=lib.hidden_size,
@@ -121,14 +122,14 @@ def get_fenxi(tokens,char_list,fenxi_txt):
 
 if __name__=='__main__':
 
-    model_type = 'lstm'
+    model_type = 'cnn_lstm'
 
     if model_type=='lstm':
         model, tokenizer, dataloader = init_lstm_var()
         PATH = './model/model_9.pth'
     elif model_type=='cnn_lstm':
         model, tokenizer, dataloader = init_cnn_lstm_var()
-        PATH = './model/cnn_lstm_model_6.pth'
+        PATH = './model/cnn_lstm_model_9.pth'
 
     # 加载模型
     state = torch.load(PATH)
@@ -144,6 +145,13 @@ if __name__=='__main__':
     fenxi_txt = './out_put/fenxi_{}.txt'.format(model_type)
     if os.path.exists(fenxi_txt):
         os.remove(fenxi_txt)
+
+    '''特殊字符'''
+    punctuations = []
+    punctuations.append('[UNK]')
+    with open('./models/punctuations', 'r') as f:
+        for i in f:
+            punctuations.append(i.replace('\n', ''))
 
     for step, d in tqdm(enumerate(dataloader)):
         #id：每一句对应的索引；text：中文编码为数字的数组；seq_len：数组长度
@@ -186,12 +194,9 @@ if __name__=='__main__':
         elif model_type=='cnn_lstm':
             char_list = []
             for i, score in enumerate(inter_score):
-                if float(score) >= 0.08:
+                if float(score) >= 0.05 and (tokens[i] not in punctuations):
                     char_list.append(i)
-                    if i < len(inter_score)-1:
-                        char_list.append(i+1)
-            char_list = list(set(char_list))
-            get_fenxi(tokens,char_list,fenxi_txt)
+            get_fenxi(tokens, char_list, fenxi_txt)
             char_list = str(char_list)
             with open(result_txt, 'a') as f:
                 f.write(str(id[0]) + "\t")

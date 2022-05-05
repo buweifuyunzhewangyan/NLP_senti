@@ -1,7 +1,7 @@
 import torch
 from tqdm import tqdm
 
-from models.lstm_model import cnn_biLSTM
+from models.lstm_model import cnn_biLSTM, cnn_biLSTM2
 from dataset import sentiDataSet,getDataLoader
 from torch.optim import Adam
 from torch.utils.data import DataLoader
@@ -79,7 +79,8 @@ if __name__ == "__main__":
     eval_loader = getDataLoader('../ChnSentiCorp/dev.tsv',batch_size=batch_size)
 
     #定义自己的模型
-    model = cnn_biLSTM(
+    model = cnn_biLSTM2(
+        cnn_outchannels=256,
         num_embeddings=num_embeddings,
         embedding_dim=embedding_dim,
         hidden_size=hidden_size,

@@ -11,7 +11,7 @@ sys.path.remove(r'D:\Spyder_project\NLP_senti\torch-version\models')
 ws = Vocab.load_vocabulary(
        r'./models/vocab.txt' , unk_token='[UNK]', pad_token='[PAD]')
 max_len = 200
-embedding_dim = 100
+embedding_dim = 256
 hidden_size = 128
 num_layer = 2
 bidirectional = True
